@@ -12,11 +12,15 @@ exports.createRecord = async( req, res ) => {
     });
 
     // save the record to the database
-    await record.save();
+    const newRecord = await record.save();
+
+const user = await UserModel.findById(req.session.user._id)
+user.records.push(newRecord)
+    
 
     res.status(201).json({
         message: "record created successfully",
-        data: record
+        data: newRecord
     });
     } catch (error) {
         return res.status(500).json({
@@ -44,16 +48,15 @@ exports.readRecords = async( req, res ) => {
 // Find all records of a specific user
 exports.readAllRecordsOfSpecificUser = async( req, res ) => {
     try {
-        const records = await RecordModel.find( { created: req.session.user._id } ).populate();
-
+        const records = await RecordModel.find( { createdBy: req.session.user._id } );
+        
         if(!records){
             return res.status(404).json({
                 message: "This user has no record"
             })
         } else {
-
-        res.status(200).json({
-            message: "All the user records.",
+        return res.status(200).json({
+            message: `All the user records are; total: ${records.length}`,
             data: records
         })
      }
